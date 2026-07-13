@@ -24,6 +24,51 @@ menù dei piatti, calendario delle tappe (mercati), recensioni dei clienti.
 | **Tappa** | id, nomeMercato, indirizzo, giornoSettimana, fotoUrl | — |
 | **Recensione** | id, stelle (1-5), commento | N–1 con User (autore) |
 
+```mermaid
+erDiagram
+  USER ||--|| CREDENTIALS : ha
+  CATEGORIA ||--o{ PIATTO : raggruppa
+  USER ||--o{ RECENSIONE : scrive
+  USER {
+    long id PK
+    string nome
+    string cognome
+    string email
+  }
+  CREDENTIALS {
+    long id PK
+    string username
+    string password
+    string role
+    long user_id FK
+  }
+  CATEGORIA {
+    long id PK
+    string nome
+  }
+  PIATTO {
+    long id PK
+    string nome
+    string descrizione
+    float prezzo
+    boolean disponibile
+    long categoria_id FK
+  }
+  TAPPA {
+    long id PK
+    string nomeMercato
+    string indirizzo
+    string giornoSettimana
+  }
+  RECENSIONE {
+    long id PK
+    int stelle
+    string commento
+    long autore_id FK
+  }
+```
+
+
 ### Note di progettazione
 
 - **User / Credentials separati**: dati anagrafici (User) e dati di accesso (Credentials)
