@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modifica Tappa - Wanted Street Food</title>
+    <link rel="stylesheet" th:href="@{/css/stile.css}" />
+</head>
+<body>
+    <h1>Modifica mercato</h1>
+
+    <form th:action="@{'/admin/tappa/edit/' + ${tappa.id}}" method="POST" th:object="${tappa}">
+        <div>
+            <label>Nome Mercato:</label>
+            <input type="text" th:field="*{nomeMercato}" required />
+        </div>
+        <div>
+            <label>Indirizzo:</label>
+            <input type="text" th:field="*{indirizzo}" required />
+        </div>
+        <div>
+            <label>Giorno della settimana:</label>
+            <input type="text" th:field="*{giornoSettimana}" required />
+        </div>
+
+        <div>
+            <button type="submit">Salva modifiche</button>
+        </div>
+    </form>
+
+    <a href="/tappe">Annulla e torna alle tappe</a>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Wanted Street Food</title>
+    <link rel="stylesheet" th:href="@{/css/stile.css}" />
+</head>
+<body>
+    <h1>Benvenuti su Wanted Street Food</h1>
+    
+    <div>
+        <!-- Visibile a TUTTI -->
+        <a href="/piatti">Vedi il nostro Menù</a> | 
+        <a href="/tappe">Dove Trovarci</a> |
+		<a href="/recensioni">Recensioni</a>
+    </div>
+
+    <hr>
+
+    <!-- Visibile SOLO se NON sei loggato (Ospite) -->
+    <div sec:authorize="isAnonymous()">
+        <p>Vuoi lasciare una recensione? <a href="/login">Accedi</a> o <a href="/register">Registrati</a></p>
+    </div>
+
+    <!-- Visibile SOLO se sei loggato (User o Admin) -->
+    <div sec:authorize="isAuthenticated()">
+        <p>Benvenuto, <span sec:authentication="name">Utente</span>!</p>
+        
+        <!-- Bottone per il logout -->
+        <form th:action="@{/logout}" method="POST" style="box-shadow: none; padding: 0; background: none; max-width: 150px;">
+            <button type="submit" style="background: #e74c3c;">Esci</button>
+        </form>
+    </div>
+
+    <!-- Visibile SOLO all'ADMIN (Tu) -->
+    <div sec:authorize="hasAuthority('ADMIN')">
+        <h3>Area Amministratore</h3>
+        <ul>
+            <li><a href="/admin/piatto/new">Aggiungi nuovo Piatto</a></li>
+            <li><a href="/admin/tappa/new">Aggiungi nuova Tappa</a></li>
+        </ul>
+    </div>
+
+</body>
+</html>

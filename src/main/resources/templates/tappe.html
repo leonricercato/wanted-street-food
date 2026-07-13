@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Dove Trovarci - Wanted Street Food</title>
+    <link rel="stylesheet" th:href="@{/css/stile.css}" />
+</head>
+<body>
+    <h1>Le nostre Tappe</h1>
+    
+    <ul>
+        <li th:each="tappa : ${tappe}">
+            <strong th:text="${tappa.nomeMercato}">Nome Mercato</strong> - 
+            <span th:text="${tappa.giornoSettimana}">Giorno</span>
+            <p th:text="${tappa.indirizzo}">Indirizzo</p>
+
+            <!-- Controlli visibili SOLO all'ADMIN -->
+            <div sec:authorize="hasAuthority('ADMIN')">
+                <a th:href="@{'/admin/tappa/edit/' + ${tappa.id}}">Modifica</a> |
+                <form th:action="@{'/admin/tappa/delete/' + ${tappa.id}}" method="POST"
+                      style="display:inline; box-shadow:none; padding:0; background:none; max-width:none; margin:0;">
+                    <button type="submit" style="background:#e74c3c; width:auto; padding:6px 12px;"
+                            onclick="return confirm('Eliminare questa tappa?');">Elimina</button>
+                </form>
+            </div>
+        </li>
+    </ul>
+    
+    <a href="/">Torna alla Home</a>
+</body>
+</html>

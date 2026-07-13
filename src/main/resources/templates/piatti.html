@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+	<link rel="stylesheet" th:href="@{/css/stile.css}" />
+    <title>Menu - Wanted Street Food</title>
+</head>
+<body>
+    <h1>Il nostro Menù</h1>
+
+    <!-- Un blocco per ogni categoria che ha almeno un piatto visibile -->
+    <div th:each="categoria : ${categorie}" th:if="${not #lists.isEmpty(categoria.piatti)}">
+        <h2 th:text="${categoria.nome}">Categoria</h2>
+        <ul>
+            <!-- Un cliente normale vede solo i piatti disponibili; l'ADMIN li vede tutti -->
+            <li th:each="piatto : ${categoria.piatti}"
+                th:if="${piatto.disponibile or #authorization.expression('hasAuthority(''ADMIN'')')}">
+                <strong th:text="${piatto.nome}">Nome Piatto</strong> -
+                <span th:text="${piatto.prezzo}">0.0</span>€
+                <span th:unless="${piatto.disponibile}" style="color:#e74c3c; font-weight:bold;"> (Non disponibile)</span>
+                <p th:text="${piatto.descrizione}">Descrizione</p>
+
+                <div sec:authorize="hasAuthority('ADMIN')">
+                    <a th:href="@{'/admin/piatto/edit/' + ${piatto.id}}">Modifica</a> |
+                    <form th:action="@{'/admin/piatto/toggle/' + ${piatto.id}}" method="POST"
+                          style="display:inline; box-shadow:none; padding:0; background:none; max-width:none; margin:0;">
+                        <button type="submit" th:if="${piatto.disponibile}"
+                                style="background:#7f8c8d; width:auto; padding:6px 12px;">Rendi non disponibile</button>
+                        <button type="submit" th:unless="${piatto.disponibile}"
+                                style="background:#27ae60; width:auto; padding:6px 12px;">Rendi disponibile</button>
+                    </form>
+                    <form th:action="@{'/admin/piatto/delete/' + ${piatto.id}}" method="POST"
+                          style="display:inline; box-shadow:none; padding:0; background:none; max-width:none; margin:0;">
+                        <button type="submit" style="background:#e74c3c; width:auto; padding:6px 12px;"
+                                onclick="return confirm('Eliminare questo piatto?');">Elimina</button>
+                    </form>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Piatti senza categoria assegnata -->
+    <div th:if="${not #lists.isEmpty(piattiSenzaCategoria)}">
+        <h2>Altri piatti</h2>
+        <ul>
+            <li th:each="piatto : ${piattiSenzaCategoria}"
+                th:if="${piatto.disponibile or #authorization.expression('hasAuthority(''ADMIN'')')}">
+                <strong th:text="${piatto.nome}">Nome Piatto</strong> -
+                <span th:text="${piatto.prezzo}">0.0</span>€
+                <span th:unless="${piatto.disponibile}" style="color:#e74c3c; font-weight:bold;"> (Non disponibile)</span>
+                <p th:text="${piatto.descrizione}">Descrizione</p>
+
+                <div sec:authorize="hasAuthority('ADMIN')">
+                    <a th:href="@{'/admin/piatto/edit/' + ${piatto.id}}">Modifica</a> |
+                    <form th:action="@{'/admin/piatto/toggle/' + ${piatto.id}}" method="POST"
+                          style="display:inline; box-shadow:none; padding:0; background:none; max-width:none; margin:0;">
+                        <button type="submit" th:if="${piatto.disponibile}"
+                                style="background:#7f8c8d; width:auto; padding:6px 12px;">Rendi non disponibile</button>
+                        <button type="submit" th:unless="${piatto.disponibile}"
+                                style="background:#27ae60; width:auto; padding:6px 12px;">Rendi disponibile</button>
+                    </form>
+                    <form th:action="@{'/admin/piatto/delete/' + ${piatto.id}}" method="POST"
+                          style="display:inline; box-shadow:none; padding:0; background:none; max-width:none; margin:0;">
+                        <button type="submit" style="background:#e74c3c; width:auto; padding:6px 12px;"
+                                onclick="return confirm('Eliminare questo piatto?');">Elimina</button>
+                    </form>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <a href="/">Torna alla Home</a>
+</body>
+</html>

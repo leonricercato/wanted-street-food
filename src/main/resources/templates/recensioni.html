@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Recensioni - Wanted Street Food</title>
+    <link rel="stylesheet" th:href="@{/css/stile.css}" />
+</head>
+<body>
+    <h1>Cosa dicono di noi</h1>
+
+    <!-- Dati passati dal server a React: chi sono (se sono loggato) -->
+    <script th:inline="javascript">
+        const currentUserId = /*[[${currentUserId}]]*/ null;
+        const isAdmin = /*[[${isAdmin}]]*/ false;
+    </script>
+
+    <!-- Componente React: legge le recensioni da /api/recensioni e le mostra -->
+    <div id="recensioni-root">Caricamento recensioni...</div>
+
+    <hr>
+
+    <!-- Form nuova recensione: visibile SOLO a chi ha fatto login -->
+    <div sec:authorize="isAuthenticated()">
+        <h3>Lascia la tua recensione</h3>
+        <form th:action="@{/recensioni}" method="POST" th:object="${recensione}">
+            <div>
+                <label>Voto (1-5):</label>
+                <input type="number" min="1" max="5" th:field="*{stelle}" required />
+            </div>
+            <div>
+                <label>Commento:</label>
+                <textarea th:field="*{commento}" required></textarea>
+            </div>
+            <div>
+                <button type="submit">Invia recensione</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Se sei ospite, ti invitiamo a loggarti: NON puoi scrivere recensioni -->
+    <div sec:authorize="isAnonymous()">
+        <p>Vuoi lasciare una recensione? <a href="/login">Accedi</a> o <a href="/register">Registrati</a></p>
+    </div>
+
+    <a href="/">Torna alla Home</a>
+
+    <!-- React (via CDN, nessun build tool necessario) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script>
+        const { useState, useEffect, createElement: h } = React;
+
+        function Stelle(props) {
+            const piene = '★'.repeat(props.n);
+            const vuote = '☆'.repeat(5 - props.n);
+            return h('span', { style: { color: '#e67e22' } }, piene + vuote);
+        }
+
+        // Riga di una singola recensione, con eventuale modalita' di modifica
+        function RigaRecensione(props) {
+            const r = props.recensione;
+            const onCambiata = props.onCambiata;
+
+            const [inModifica, setInModifica] = useState(false);
+            const [stelle, setStelle] = useState(r.stelle);
+            const [commento, setCommento] = useState(r.commento);
+            const [erroreAzione, setErroreAzione] = useState(null);
+
+            const autoreNome = r.autore ? (r.autore.nome + ' ' + r.autore.cognome) : 'Anonimo';
+            const eMia = currentUserId !== null && r.autore && r.autore.id === currentUserId;
+
+            function salvaModifica() {
+                fetch('/api/recensioni/' + r.id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stelle: Number(stelle), commento: commento })
+                }).then(function (res) {
+                    if (!res.ok) throw new Error('Non autorizzato a modificare questa recensione');
+                    setInModifica(false);
+                    onCambiata();
+                }).catch(function (err) { setErroreAzione(err.message); });
+            }
+
+            function elimina() {
+                if (!confirm('Eliminare questa recensione?')) return;
+                fetch('/api/recensioni/' + r.id, { method: 'DELETE' })
+                    .then(function (res) {
+                        if (!res.ok) throw new Error('Non autorizzato a eliminare questa recensione');
+                        onCambiata();
+                    }).catch(function (err) { setErroreAzione(err.message); });
+            }
+
+            if (inModifica) {
+                return h('li', { key: r.id },
+                    h('div', null,
+                        h('label', null, 'Voto (1-5): '),
+                        h('input', {
+                            type: 'number', min: 1, max: 5, value: stelle,
+                            onChange: function (e) { setStelle(e.target.value); }
+                        })
+                    ),
+                    h('div', null,
+                        h('label', null, 'Commento: '),
+                        h('textarea', {
+                            value: commento,
+                            onChange: function (e) { setCommento(e.target.value); }
+                        })
+                    ),
+                    h('button', { type: 'button', onClick: salvaModifica }, 'Salva'),
+                    ' ',
+                    h('button', { type: 'button', onClick: function () { setInModifica(false); } }, 'Annulla'),
+                    erroreAzione ? h('p', { style: { color: 'red' } }, erroreAzione) : null
+                );
+            }
+
+            return h('li', { key: r.id },
+                h(Stelle, { n: r.stelle }),
+                h('p', null, r.commento),
+                h('small', null, '— ' + autoreNome),
+                eMia ? h('div', { style: { marginTop: '8px' } },
+                    h('button', { type: 'button', onClick: function () { setInModifica(true); } }, 'Modifica'),
+                    ' ',
+                    h('button', { type: 'button', style: { background: '#e74c3c' }, onClick: elimina }, 'Elimina')
+                ) : (isAdmin ? h('div', { style: { marginTop: '8px' } },
+                    h('button', { type: 'button', style: { background: '#e74c3c' }, onClick: elimina }, 'Elimina (admin)')
+                ) : null),
+                erroreAzione ? h('p', { style: { color: 'red' } }, erroreAzione) : null
+            );
+        }
+
+        function ListaRecensioni() {
+            const [recensioni, setRecensioni] = useState(null);
+            const [errore, setErrore] = useState(null);
+
+            function carica() {
+                fetch('/api/recensioni')
+                    .then(function (res) {
+                        if (!res.ok) throw new Error('Errore nel caricamento delle recensioni');
+                        return res.json();
+                    })
+                    .then(setRecensioni)
+                    .catch(function (err) { setErrore(err.message); });
+            }
+
+            useEffect(function () { carica(); }, []);
+
+            if (errore) return h('p', { style: { color: 'red' } }, errore);
+            if (recensioni === null) return h('p', null, 'Caricamento recensioni...');
+            if (recensioni.length === 0) return h('p', null, 'Nessuna recensione ancora. Sii il primo a scriverne una!');
+
+            return h('ul', null, recensioni.map(function (r) {
+                return h(RigaRecensione, { key: r.id, recensione: r, onCambiata: carica });
+            }));
+        }
+
+        ReactDOM.createRoot(document.getElementById('recensioni-root')).render(h(ListaRecensioni));
+    </script>
+</body>
+</html>

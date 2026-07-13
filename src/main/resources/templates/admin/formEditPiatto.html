@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" th:href="@{/css/stile.css}" />
+    <title>Modifica Piatto - Wanted Street Food</title>
+</head>
+<body>
+    <h1>Modifica piatto</h1>
+
+    <form th:action="@{'/admin/piatto/edit/' + ${piatto.id}}" method="POST" th:object="${piatto}">
+        <div>
+            <label>Nome:</label>
+            <input type="text" th:field="*{nome}" required />
+        </div>
+        <div>
+            <label>Descrizione:</label>
+            <textarea th:field="*{descrizione}" required></textarea>
+        </div>
+        <div>
+            <label>Prezzo (€):</label>
+            <input type="number" step="0.5" th:field="*{prezzo}" required />
+        </div>
+        <div>
+            <label>Categoria:</label>
+            <select name="categoriaId">
+                <option value="">-- Nessuna categoria --</option>
+                <option th:each="cat : ${categorie}" th:value="${cat.id}" th:text="${cat.nome}"
+                        th:selected="${piatto.categoria != null and piatto.categoria.id == cat.id}"></option>
+            </select>
+        </div>
+        <div>
+            <label>Disponibile oggi?</label>
+            <input type="checkbox" th:field="*{disponibile}" />
+        </div>
+        <div>
+            <button type="submit">Salva modifiche</button>
+        </div>
+    </form>
+
+    <a href="/piatti">Annulla e torna al menù</a>
+</body>
+</html>

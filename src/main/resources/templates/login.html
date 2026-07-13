@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" th:href="@{/css/stile.css}" />
+    <title>Login - Wanted Street Food</title>
+</head>
+<body>
+    <h1>Accesso Area Riservata</h1>
+
+    <!-- Messaggio di errore se le credenziali sono sbagliate -->
+    <div th:if="${param.error}" style="color: red;">
+        Username o password non validi. Riprova.
+    </div>
+
+    <!-- Messaggio di successo se hai appena fatto il logout -->
+    <div th:if="${param.logout}" style="color: green;">
+        Logout effettuato con successo.
+    </div>
+
+    <!-- Il form invia i dati all'indirizzo /login (gestito in automatico da Spring Security) -->
+    <form th:action="@{/login}" method="POST">
+        <div>
+            <label>Username:</label>
+            <!-- Attenzione: qui usiamo name="..." e non th:field perché lo richiede Spring Security -->
+            <input type="text" name="username" required />
+        </div>
+        <div>
+            <label>Password:</label>
+            <input type="password" name="password" required />
+        </div>
+        
+        <div>
+            <button type="submit">Accedi</button>
+        </div>
+    </form>
+
+    <p>Non hai un account? <a href="/register">Registrati qui</a></p>
+    <a href="/">Torna alla Home</a>
+</body>
+</html>
