@@ -109,4 +109,4 @@ senza build tool) che:
 
 ## Malfunzionamenti noti
 
-*(da compilare prima dell'invio, se presenti)*
+Nessun malfunzionamento noto al momento della consegna.
